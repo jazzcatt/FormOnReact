@@ -1,0 +1,23 @@
+
+
+.container{
+	position: absolute;
+	padding: 5%;
+	height: 100%; 
+	margin-left: 0;
+	width:70%;
+	overflow-x:scroll;
+	background-color: gray;
+	border:solid 2px;
+}
+
+
+.jsonBlock{
+	position: absolute;
+	padding: 0;
+	float: right;
+	right: 0;
+	width: 30%;
+	height: 100%;
+
+}
