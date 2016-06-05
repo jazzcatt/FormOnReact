@@ -37,6 +37,83 @@ var Namerow = React.createClass({
 		 )
 	}
 });
+/*
+/ the form for selecting and creating preview
+/
+*/
+var Selectfile = React.createClass({
+
+/*
+/@params image{Object} object Image() which conteins download image paramerers
+/@params a{number} reduction index
+/ creating miniature of downloading photo
+*/	
+  makePreview : function (image, a) {    
+	    var img = image,
+	    w = img.width, h = img.height,
+	    s = w / h;     
+	 
+  	if(w > a && h > a) {
+	    if(img.width > img.height) {
+	      img.width = a;
+	      img.height = a / s;
+	    } else {
+	      img.height = a;
+	      img.width = a * s;
+	    }
+ 	}
+  	return img;
+},
+
+/*
+/   show download progress,
+/   include nimiature in page element
+/
+*/
+ 	previewFile: function (e){
+ 		var makePreview = this.makePreview;                // take makePreview method from closure
+		var progressBar = document.querySelector('#progress');
+		var preview = document.querySelector('#img');
+		var file    = e.target.files[0];
+		var reader  = new FileReader();
+		var image = new Image();
+
+	if(/image.*/.test(file.type)){								//  only img files
+		document.getElementById('photoblock').style.display = 'block';
+
+	    reader.onloadend = function () {
+	    image.src = reader.result;
+	    image = makePreview(image, 180);						//creating miniature
+
+	    preview.width = image.width;
+	    preview.height = image.height;
+	    preview.src = reader.result;
+	    document.getElementById('ok_ico').style.display = 'block';  
+	
+    }
+ reader.onprogress = function (e) {          					// show progressing of download file
+ var loaded = Math.round((e.loaded / e.total) * 100);
+ progressBar.value = loaded;          
+}
+
+if (file) {														// get file in base64 represent 
+  reader.readAsDataURL(file);
+	}
+
+  }else{ alert('You must select image file')}
+},
+	onchange: function(e) {
+		this.previewFile(e);
+	},
+	render: function() {
+		return(
+			<input type='file' className='form-inline' placeholder='Select File' onChange={this.onchange} />
+		)
+	}
+});
+
+
+
 
 /*
 /   added lines for offer selec
@@ -57,18 +134,13 @@ var OfferAdd = React.createClass({
 		this.props.takeElemData({name: 'offer', value:{sum: sum, file_id: this.state.file_id}});
 	  
 	},
-	selectfile: function(event) {
-		var file_id = 10;                          // "generic" some id
-		this.setState({file_id: file_id}); 
-		this.props.takeElemData({name: 'offer', value:{sum: this.state.value, file_id: file_id}});
+	render: function() {
 
-	},
-	render: function() {	
 		return(
 			<div className='form-group'>
 			<br />
 			<input type='text' className='form-control' placeholder='Amount' onChange={this.onchange} /> 
-			<input type='file' className='form-inline' placeholder='Select File' onChange={this.selectfile} />
+			<Selectfile />
 			</div>
 		)
 	}
@@ -95,6 +167,7 @@ var ContractAdd = React.createClass({
 				<label>Order# {this.state.number}</label>
 				<br />
 				<label>Date: {this.state.date} </label>
+				<Selectfile />
 		    </div>
 		)
   	}
@@ -152,8 +225,7 @@ var Actselect = React.createClass({
 		this.props.takeElemData({name : 'activity_id', value : e});		
 	},
 	render: function() {
-			var self = this;
-				
+			var self = this;		
 		return (
 						<div className='col-sm-4'>
 			<select className='form-control' onChange={this.onchange}>
@@ -171,25 +243,20 @@ var Actselect = React.createClass({
 });
 
 /*
-/ conteints photo block
+/ contents photo block
 */
 var Photoblock = React.createClass({
-	getInitialState: function() {
-		return {src: 'img/default.png'}
-	},
-	onchange: function(event) {
-		var path = event.target.value;
-		this.setState({src: path});
-	},
 	render: function() {
 		return (
-			<div className='col-sm-4'>
-			  <img src={this.state.src}  height='220' width='180' alt='Your photo. 0_0'/>
-			  <input type='file' onChange={this.onchange}/>
+			<div id='photoblock' className='col-sm-4' style={{display:'none'}}>
+				<progress  id='progress'style={{width:'180px'}} value="0" min="0" max="100"></progress>
+					<img id='ok_ico' src='img/ok_ico.png' width='20' height='20' 
+						style={{display:'none',  float:'right'}} />
+					<img id='img' alt='Your photo. 0_0' />		  
 			</div>
 			)
-	}
-}); 
+		}
+	}); 
 
 /*
 /
@@ -232,7 +299,7 @@ var Formact = React.createClass({
 		var Data = JSON.stringify(this.state, "", 4);
 		var xhr = new XMLHttpRequest();
   		xhr.open("POST", "/url", true);
-  		xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');;
+  		xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
   		xhr.send(Data);
 	},
 	render: function() {
@@ -245,6 +312,8 @@ var Formact = React.createClass({
 			 	<Phoneselect takeElemData={self.takeElemData}/>	
 				<Actselect takeElemData={self.takeElemData}/>
 				<Photoblock />
+				<br /><br /><br /><br />
+				<br /><br /><br /><br />	
 				<input type='submit' value='Submit' className=' btn-lg col-sm-4' onSubmit={this.onsubmit} />
 			</form>
 		    <JSONblock data={self.state}/>
